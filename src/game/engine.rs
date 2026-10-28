@@ -19,7 +19,7 @@ pub fn gravity_interval(level: u32) -> Duration {
         6 => 380,
         7 => 300,
         8 => 220,
-        9 => 160,
+        9 => 150,
         _ => 100, //level 10+ is capped
     };
     Duration::from_millis(ms)
@@ -258,5 +258,148 @@ impl Default for Engine {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::game::board::HEIGHT;
 
-/// TODO: write tests 
+    const MS: fn(u64) -> Duration = Duration::from_millis;
+
+    fn engine_with(kind: TetrominoType) -> Engine {
+        let mut e = Engine::new();
+        e.active = ActivePiece::spawn(kind);
+        e
+    }
+
+    fn locked_cells(e: &Engine) -> usize {
+        (0..HEIGHT)
+            .flat_map(|y| (0..WIDTH).map(move |x| (x, y)))
+            .filter(|&(x, y)| e.board.cell(x, y).is_some())
+            .count()
+    }
+
+    #[test]
+    fn gravity_table_matches_spec() {
+        let expected = [800, 720, 630, 550, 470, 380, 300, 220, 150, 100, 100];
+        for (i, ms) in expected.into_iter().enumerate() {
+            assert_eq!(gravity_interval(i as u32 + 1), MS(ms), "level {}", i + 1);
+        }
+    }
+
+    #[test]
+    fn level_advances_every_ten_lines() {
+        assert_eq!(level_for_lines(0), 1);
+        assert_eq!(level_for_lines(9), 1);
+        assert_eq!(level_for_lines(10), 2);
+        assert_eq!(level_for_lines(25), 3);
+    }
+
+    #[test]
+    fn flat_scores() {
+        assert_eq!(score_for_lines(0), 0);
+        assert_eq!(score_for_lines(1), 100);
+        assert_eq!(score_for_lines(2), 250);
+        assert_eq!(score_for_lines(3), 400);
+        assert_eq!(score_for_lines(4), 800);
+    }
+
+    #[test]
+    fn spawn_is_centered_at_row_zero() {
+        let a = ActivePiece::spawn(TetrominoType::O);
+        assert_eq!((a.x, a.y), (4, 0));
+        let a = ActivePiece::spawn(TetrominoType::T);
+        assert_eq!((a.x, a.y), (3, 0));
+    }
+
+    #[test]
+    fn gravity_moves_piece_after_interval() {
+        let mut e = Engine::new();
+        e.tick(MS(799));
+        assert_eq!(e.active.y, 0);
+        e.tick(MS(1));
+        assert_eq!(e.active.y, 1);
+    }
+
+    #[test]
+    fn soft_drop_moves_down_and_resets_gravity() {
+        let mut e = Engine::new();
+        e.tick(MS(700));
+        assert!(e.soft_drop());
+        assert_eq!(e.active.y, 1);
+        e.tick(MS(700));
+        assert_eq!(e.active.y, 1); // would have fallen afain if timer weren't reset
+    }
+
+    #[test]
+    fn hard_drop_locks_immediately() {
+       let mut e = engine_with(TetrominoType::O); 
+       e.hard_drop();
+       assert!(e.board.cell(4, 21).is_some());
+       assert!(e.board.cell(5, 20).is_some());
+       assert_eq!(locked_cells(&e), 4);
+       assert_eq!(e.active.y, 0); // a fresh piece spawned
+    }
+
+    #[test]
+    fn ghost_matches_hard_drop_row() {
+        let e = engine_with(TetrominoType::O);
+        assert_eq!(e.ghost_y(), 20);
+    }
+
+    #[test]
+    fn lock_delay_watis_500ms() {
+        let mut e = engine_with(TetrominoType::O);
+        while e.soft_drop() { }
+        e.tick(MS(499));
+        assert_eq!(locked_cells(&e), 0);
+        e.tick(MS(1));
+        assert_eq!(locked_cells(&e), 4);
+    }
+
+    #[test]
+    fn clearing_rows_scores_and_counts_lines() {
+        let mut e = Engine::new();
+        let o = Piece::new(TetrominoType::O);
+        for x in [0, 2, 6, 8] {
+            e.board.lock_piece(&o, x, 20);
+        }
+        e.active = ActivePiece::spawn(TetrominoType::O);
+        e.hard_drop();
+        assert_eq!(e.score(), 250);
+        assert_eq!(e.lines(), 2);
+        assert_eq!(e.level(), 1);
+        assert_eq!(locked_cells(&e), 0);
+    }
+
+    #[test]
+    fn block_out_ends_game() {
+        let mut e = Engine::new();
+        e.board.lock_piece(&Piece::new(TetrominoType::O), 4, 0);
+        e.spawn_next();
+        assert_eq!(e.state(), EngineState::GameOver);
+    }
+
+    #[test]
+    fn lock_out_ends_game() {
+        let mut e = Engine::new();
+        let o = Piece::new(TetrominoType::O);
+        for y in (2..22).step_by(2) {
+            e.board.lock_piece(&o, 4, y);
+        }
+        e.active = ActivePiece::spawn(TetrominoType::O);
+        e.hard_drop();
+        assert_eq!(e.state(), EngineState::GameOver);
+    }
+
+    #[test]
+    fn input_ignored_after_game_over() {
+        let mut e = Engine::new();
+        e.state = EngineState::GameOver;
+        assert!(!e.move_by(1));
+        assert!(!e.rotate());
+        assert!(!e.soft_drop());
+        let before = e.active;
+        e.tick(MS(5000));
+        assert_eq!(e.active, before);
+    }
+}
