@@ -1,5 +1,5 @@
 pub mod event;
-
+pub mod game;
 use std::io::{self, stdout, Stdout};
 use std::panic;
 use std::time::Duration;
