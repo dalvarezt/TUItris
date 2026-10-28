@@ -10,7 +10,7 @@ use crossterm::terminal::{
 };
 use crossterm::cursor::{Hide, Show};
 use ratatui::backend::CrosstermBackend;
-use ratatui::{Terminal, restore};
+use ratatui::Terminal; // restore;
 use event::{Event, EventHandler};
 
 pub type TuiTerminal = Terminal<CrosstermBackend<Stdout>>;
@@ -47,7 +47,7 @@ fn main() -> io::Result<()> {
             let line = ratatui::text::Line::from(text);
             frame.render_widget(line, area);
         })?;
-        match events.next().map_err(|e| io::Error::other(e))? {
+        match events.next().map_err(io::Error::other)? {
             Event::Key(key) => match key.code {
                 KeyCode::Char('q') | KeyCode::Esc => break,
                 _ => {}

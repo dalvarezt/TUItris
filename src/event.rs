@@ -34,11 +34,12 @@ impl EventHandler {
                                 break;
                             }
                         }
-                        Ok(CrosstermEvent::Resize(width, height)) => {
-                            if event_tx.send(Event::Resize(width, height)).is_err() {
+                        Ok(CrosstermEvent::Resize(width, height)) 
+                            if event_tx.send(Event::Resize(width, height)).is_err() => 
+                            {
                                 break;
                             }
-                        }
+                    
                         _ => {}
                     }
                 }
