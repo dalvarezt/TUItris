@@ -52,14 +52,14 @@ tuitris/
 ### Phase 1: Project Setup & Terminal Lifecycle
 **Objective:** Initialize Cargo project, configure dependencies, set up robust raw mode lifecycle and panic handling.
 
-- [ ] **Step 1.1: Cargo Setup**
+- [x] **Step 1.1: Cargo Setup**
   - Initialize `Cargo.toml` with `ratatui`, `crossterm`, `serde`, `serde_json`, `rand`, and `chrono`.
   - Configure release profile (`lto = true`, `opt-level = 3`, `strip = true`) for lean standalone binary distribution.
-- [ ] **Step 1.2: Terminal Raw Mode & Restoration**
+- [x] **Step 1.2: Terminal Raw Mode & Restoration**
   - Implement clean terminal setup (`enable_raw_mode()`, `EnterAlternateScreen`, `Hide` cursor).
   - Implement foolproof teardown (`disable_raw_mode()`, `LeaveAlternateScreen`, `Show` cursor).
   - Install a custom panic hook (`std::panic::set_hook`) to guarantee terminal restoration even upon unexpected panics.
-- [ ] **Step 1.3: Event & Tick Architecture**
+- [x] **Step 1.3: Event & Tick Architecture**
   - Create `event.rs` implementing an event polling loop that yields either `Event::Key(KeyEvent)` or `Event::Tick`.
   - Set a high-frequency polling interval (~16ms-33ms / 30-60 FPS) to maintain responsive keyboard controls independent of the falling gravity interval.
 
@@ -68,7 +68,7 @@ tuitris/
 ### Phase 2: Core Domain Logic & Math (Unit-Testable)
 **Objective:** Build all pure game logic without UI dependencies, ensuring complete unit test coverage.
 
-- [ ] **Step 2.1: Tetromino Matrix & Palette Definition**
+- [x] **Step 2.1: Tetromino Matrix & Palette Definition**
   - Define enum `TetrominoType { I, O, T, S, Z, J, L }`.
   - Store standard bounding boxes for each tetromino (e.g. 4x4 for `I`, 2x2 for `O`, 3x3 for `T, S, Z, J, L`).
   - Assign palette colors according to spec:
@@ -79,16 +79,16 @@ tuitris/
     - `Z`: Red
     - `J`: Blue
     - `L`: Orange (or High-Intensity Yellow fallback)
-- [ ] **Step 2.2: 7-Bag Randomizer**
+- [x] **Step 2.2: 7-Bag Randomizer**
   - Implement `BagRandomizer` struct containing all 7 pieces.
   - Shuffle and draw sequentially; refill with a freshly shuffled bag upon depletion.
   - Unit tests to verify fair distribution and no drought exceeding 12 pieces.
-- [ ] **Step 2.3: Playfield Board Representation**
+- [x] **Step 2.3: Playfield Board Representation**
   - Create `Board` struct with width 10, total height 22 (rows 0-1 as buffer rows, rows 2-21 as visible rows).
   - Cells represent `Option<Color>` (empty or locked block).
   - Implement collision check `is_valid_position(piece, pos_x, pos_y)`.
   - Implement row clearing algorithm with line count return.
-- [ ] **Step 2.4: Rotation & Boundary/Wall Kicks**
+- [x] **Step 2.4: Rotation & Boundary/Wall Kicks**
   - Implement 90° clockwise matrix rotation.
   - Implement Simplified Modern kick sequence:
     1. Standard in-place `(0, 0)`
@@ -104,7 +104,7 @@ tuitris/
 ### Phase 3: Game Engine & Timers
 **Objective:** Implement gravity scaling, soft/hard drop, lock delay, and score calculation.
 
-- [ ] **Step 3.1: Gravity & Level Progression**
+- [x] **Step 3.1: Gravity & Level Progression**
   - Starting level: 1. Advance +1 level every 10 cleared lines.
   - Map level to gravity interval:
     - Level 1: 800 ms
@@ -117,20 +117,20 @@ tuitris/
     - Level 8: 220 ms
     - Level 9: 150 ms
     - Level 10+: 100 ms (capped)
-- [ ] **Step 3.2: Lock Delay Mechanism**
+- [x] **Step 3.2: Lock Delay Mechanism**
   - When active piece lands on stack/floor via gravity or soft drop, activate a ~500ms lock delay timer.
   - If player moves or rotates successfully while timer is active, reset/extend lock delay.
   - Lock immediately if 500ms elapses without further downward movement.
-- [ ] **Step 3.3: Dropping Actions & Ghost Piece Calculation**
+- [x] **Step 3.3: Dropping Actions & Ghost Piece Calculation**
   - **Soft Drop (`↓`)**: Move 1 cell down immediately, reset gravity step timer.
   - **Hard Drop (`Space`)**: Raycast downward to the lowest valid position, lock immediately, bypass lock delay.
   - **Ghost Piece**: Calculate landing row `ghost_y` for visual projection.
-- [ ] **Step 3.4: Flat Scoring System**
+- [x] **Step 3.4: Flat Scoring System**
   - 1 row (Single): 100 points
   - 2 rows (Double): 250 points
   - 3 rows (Triple): 400 points
   - 4 rows (Tetris): 800 points
-- [ ] **Step 3.5: Spawn & Game Over Triggers**
+- [x] **Step 3.5: Spawn & Game Over Triggers**
   - Spawn centered at row 0 horizontally.
   - Check **Block Out** (immediate collision on spawn).
   - Check **Lock Out** (blocks locked entirely above row 2 in the hidden buffer).
