@@ -1,17 +1,20 @@
+pub mod app;
 pub mod event;
 pub mod game;
+pub mod ui;
+
 use std::io::{self, stdout, Stdout};
 use std::panic;
 use std::time::Duration;
-use crossterm::event::KeyCode;
 use crossterm::execute;
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use crossterm::cursor::{Hide, Show};
 use ratatui::backend::CrosstermBackend;
-use ratatui::Terminal; // restore;
+use ratatui::Terminal; 
 use event::{Event, EventHandler};
+use app::App;
 
 pub type TuiTerminal = Terminal<CrosstermBackend<Stdout>>;
 
@@ -39,20 +42,20 @@ pub fn install_panic_hook() {
 fn main() -> io::Result<()> {
     install_panic_hook();
     let mut terminal = init_terminal()?;
-    let events = EventHandler::new(Duration::from_millis(33)); // ~30 FPS polling loop
+    let tick_rate = Duration::from_millis(33); // ~30 FPS
+    let events = EventHandler::new(tick_rate); // ~30 FPS polling loop
+    let mut app = App::new();
+
     loop {
-        terminal.draw(|frame| {
-            let area = frame.area();
-            let text = "TUItris Phase 1 Initialized. Press 'q' or 'Esc' to exit.";
-            let line = ratatui::text::Line::from(text);
-            frame.render_widget(line, area);
-        })?;
+        terminal.draw(|frame| ui::render(frame, &app))?;
+
+        if app.should_quit() {
+            break;
+        }
+
         match events.next().map_err(io::Error::other)? {
-            Event::Key(key) => match key.code {
-                KeyCode::Char('q') | KeyCode::Esc => break,
-                _ => {}
-            },
-            Event::Tick => {}
+            Event::Key(key) => app.handle_key(key),
+            Event::Tick => app.tick(tick_rate),
             Event::Resize(_, _) => {}
         }
     }
