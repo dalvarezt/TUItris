@@ -141,13 +141,13 @@ tuitris/
 ### Phase 4: State Machine & UI Views
 **Objective:** Construct Ratatui visual components, navigation states, and responsive layout.
 
-- [ ] **Step 4.1: Adaptive Terminal Resize Warning**
+- [x] **Step 4.1: Adaptive Terminal Resize Warning**
   - Detect terminal dimensions on draw.
   - If width < 60 or height < 26, render a centered warning dialog: `Terminal size too small. Please resize to at least 60x26`.
-- [ ] **Step 4.2: Main Menu Screen (`State::StartMenu`)**
+- [x] **Step 4.2: Main Menu Screen (`State::StartMenu`)**
   - Centered ASCII art banner `TUItris`.
   - Menu options: `[Enter] Start New Game`, `[H] View High Scores`, `[Q] Quit`.
-- [ ] **Step 4.3: Playing Screen Layout (`State::Playing`)**
+- [x] **Step 4.3: Playing Screen Layout (`State::Playing`)**
   - Centered split layout:
     - **Left Panel (Board)**:
       - Bordered block.
@@ -158,16 +158,16 @@ tuitris/
       - Score, Level, Lines Cleared cards.
       - Next Piece Box: Framed 4×4 preview with incoming tetromino shape centered.
       - Controls / Help box.
-- [ ] **Step 4.4: Paused Dialog Overlay (`State::Paused`)**
+- [x] **Step 4.4: Paused Dialog Overlay (`State::Paused`)**
   - Render semi-transparent backdrop or centered pop-up dialog with `GAME PAUSED`.
   - Keys: `P` to resume, `Q` to forfeit/exit to main menu.
-- [ ] **Step 4.5: Game Over & Initials Entry Screen (`State::GameOver`)**
+- [x] **Step 4.5: Game Over & Initials Entry Screen (`State::GameOver`)**
   - Display final score, level, lines cleared.
   - High score check:
     - If qualifying for top 10: interactive text input prompting for **3 uppercase alphanumeric initials**.
     - Support typing (`A-Z`, `0-9`), `Backspace`, `Enter` to confirm, `Esc` or `Q` to discard.
     - If not qualifying: prompt `[Enter]` to view leaderboard or `[R]` to restart.
-- [ ] **Step 4.6: Leaderboard Screen (`State::Leaderboard`)**
+- [x] **Step 4.6: Leaderboard Screen (`State::Leaderboard`)**
   - Formatted table displaying Top 10 scores: Rank (1st-10th), Initials (3 chars), Score, Level, Date (`YYYY-MM-DD`).
   - Keybindings: `[Enter]` / `[R]` for new game, `[Esc]` / `[Q]` to return to main menu.
 
