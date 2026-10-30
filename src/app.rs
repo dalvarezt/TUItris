@@ -125,7 +125,8 @@ impl App {
             date: "1970-01-01".to_string(), //TODO: get current date
         };
         self.high_scores.push(entry);
-        self.high_scores.sort_by(|a, b| b.score.cmp(&a.score));
+        // self.high_scores.sort_by(|a, b| b.score.cmp(&a.score));
+        self.high_scores.sort_by_key(|a| std::cmp::Reverse(a.score));
         self.high_scores.truncate(10);
         // TODO: store scores on disk
     }
