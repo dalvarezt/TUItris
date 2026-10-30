@@ -2,6 +2,7 @@ use std::time::Duration;
 use crossterm::event::{KeyCode, KeyEvent};
 
 use crate::game::engine::{Engine, EngineState};
+use crate::storage::highscores::{self, HighScoreEntry};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AppState {
@@ -10,14 +11,6 @@ pub enum AppState {
     Paused,
     GameOver,
     Leaderboard,
-}
-
-#[derive(Clone, Debug)]
-pub struct HighScoreEntry {
-    pub initials: String,
-    pub score: u32,
-    pub level: u32,
-    pub date: String,
 }
     
 pub struct App {
@@ -34,7 +27,7 @@ impl App {
             state: AppState::StartMenu,
             engine: Engine::new(),
             initials_input: String::new(),
-            high_scores: Vec::new(),
+            high_scores: highscores::load(),
             should_quit: false,
         }
     }
@@ -98,7 +91,7 @@ impl App {
                     KeyCode::Esc => {
                         self.state = AppState::Leaderboard;
                     }
-                    _ => {}
+                   _ => {}
                 }
                 } else {
                     match key.code {
@@ -118,17 +111,16 @@ impl App {
     }
 
     fn save_high_score(&mut self) {
+        let date = chrono::Local::now().format("%Y-%m-%d").to_string();
+
         let entry = HighScoreEntry {
             initials: self.initials_input.clone(),
             score: self.engine.score(),
             level: self.engine.level(),
-            date: "1970-01-01".to_string(), //TODO: get current date
+            date
         };
-        self.high_scores.push(entry);
-        // self.high_scores.sort_by(|a, b| b.score.cmp(&a.score));
-        self.high_scores.sort_by_key(|a| std::cmp::Reverse(a.score));
-        self.high_scores.truncate(10);
-        // TODO: store scores on disk
+        highscores::add_entry(&mut self.high_scores, entry);
+        highscores::save(&self.high_scores);
     }
 
     pub fn tick(&mut self, dt: Duration) {
